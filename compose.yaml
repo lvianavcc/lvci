@@ -1,0 +1,60 @@
+services:
+  jenkins-dind:
+    image: docker:dind
+    ports:
+      - 2376:2376
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client
+    networks:
+      - ci-network
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    command: --storage-driver=overlay2
+    privileged: true
+
+  jenkins:
+    build: ./jenkins-lv
+    depends_on:
+      - gerrit
+      - jenkins-dind
+    ports:
+      - 8080:8080
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
+      - ./jenkins-config/jenkins.yaml:/var/jenkins_home/jenkins.yaml
+      - ./ssh:/var/jenkins_home/.ssh
+    networks:
+      - ci-network
+    environment:
+      - DOCKER_HOST=tcp://jenkins-dind:2376
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1
+
+  gerrit:
+    image: gerritcodereview/gerrit
+    volumes:
+      - git-volume:/var/gerrit/git
+      - index-volume:/var/gerrit/index
+      - cache-volume:/var/gerrit/cache
+      - ./gerrit-config:/var/gerrit/etc
+    ports:
+      - "29418:29418"
+      - "8081:8080"
+    networks:
+      - ci-network
+    environment:
+      - CANONICAL_WEB_URL=http://localhost:8081
+    # command: init --batch --dev
+
+volumes:
+  jenkins-data:
+  jenkins-docker-certs:
+  git-volume:
+  cache-volume:
+  index-volume:
+
+
+networks:
+  ci-network:

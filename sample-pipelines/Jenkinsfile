@@ -1,0 +1,17 @@
+#!groovy
+
+// baseline_version = GERRIT_REFNAME.replaceFirst('refs/tags/', '')
+// is_release = baseline_version ==~ /^[0-9]{4}\.[0-9]+\.[0-9]+$/
+// folder = is_release ? 'official_releases' : baseline_version.split('\\.')[1]
+// baseline_url = "https://ara-artifactory.volvocars.biz/artifactory/ARTCSP-CI-LTS/CIS-Baselines/$folder/$baseline_version/gen1/hp/baseline.json"
+
+pipeline {
+    agent any
+    stages {
+        stage('Example') {
+            steps {
+                sh "./hello/hello_world.sh"
+            }
+        }
+    }
+}

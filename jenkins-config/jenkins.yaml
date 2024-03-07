@@ -1,0 +1,63 @@
+credentials:
+  system:
+    domainCredentials:
+    - credentials:
+      - basicSSHUserPrivateKey:
+          description: "Gerrit SSH key"
+          id: "gerrit-ssh-key"
+          privateKeySource:
+            directEntry:
+              privateKey: ${PRIVATE_KEY}
+          scope: GLOBAL
+          username: ${JENKINS_USER}
+
+jenkins:
+  systemMessage: "Welcome to LV CI Jenkins"
+
+security:
+  # Respawning Gerrit will cause host key verification to fail. Disable that.
+  gitHostKeyVerificationConfiguration:
+    sshHostKeyVerificationStrategy: "noHostKeyVerificationStrategy"
+
+unclassified:
+  location:
+    url: http://localhost:8080/
+
+  gerrit-trigger:
+    servers:
+    - config:
+        buildCurrentPatchesOnly:
+          abortAbandonedPatchsets: false
+          abortManualPatchsets: false
+          abortNewPatchsets: false
+          abortSameTopic: false
+          enabled: false
+        categories:
+        - verdictDescription: "Code Review"
+          verdictValue: "Code-Review"
+        - verdictDescription: "Verified"
+          verdictValue: "Verified"
+        gerritAuthKeyFile: "/var/jenkins_home/.ssh/id_rsa"
+        gerritAuthKeyFilePassword: ""
+        gerritFrontEndUrl: "http://lvci-gerrit-1"
+        gerritHostName: "gerrit"
+        gerritUserName: "jenkins"
+      name: "gerrit"
+      noConnectionOnStartup: false
+
+jobs:
+  - script: >
+      job('Job_DSL_Seed') {
+        scm {
+          git {
+            remote {
+              url 'http://gerrit:8080/pipelines'
+            }
+          }
+        }
+        steps {
+          jobDsl {
+            targets '**/*.groovy'
+          }
+        }
+      }

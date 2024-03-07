@@ -1,0 +1,3 @@
+repos
+gerrit-config/*
+!gerrit-config/gerrit.config
